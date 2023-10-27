@@ -1,11 +1,13 @@
-import { capitalize } from "lodash"
-import { Fragment, useEffect, useState } from "react"
 
-import TextInput from "@/components/input/textInput"
-import SelectInput from "./input/selectInput"
-import NumberInput from "./input/numberInput"
+// import { v4 as uuidv4 } from 'uuid';
+import { capitalize } from "lodash";
+import { Fragment, useState } from "react";
+import * as uuidjs  from 'uuidjs';
 
-import useStorage from "./context/storage"
+import TextInput from "@/components/input/textInput";
+import SelectInput from "@/components/input/selectInput";
+import NumberInput from "@/components/input/numberInput";
+import useStorage from "./context/storage";
 
 export default function ElQueTeIngresaLosPrecios() {
 
@@ -24,48 +26,51 @@ const GrillaProductos = () => {
 
   const { productos, editarProducto } = useStorage()
 
-  // Problema: editarProducto llama a setProductos y eso actualiza productos
-  // y se re-renderean los inputs, haciendome perder focus
   return <div className="grid grid-cols-[1fr_1fr_1fr_20px] gap-2">
-    {productos.map(p => <Fragment key={p.nombre}>
+    {productos.map(p => <Fragment key={p._id}>
+      {/* <p>{p.nombre}</p> */}
       <LineaProducto p={p} onEdit={editarProducto}/>
     </Fragment>)}
   </div>
 }
 
 const LineaProducto = ({p, onEdit}: {p: IProducto, onEdit: (p: IProducto, u: Partial<IProducto>) => void}) => {
-  const productoVacio = {
+  const productoVacio = () => ({
+    _id: '',
     nombre: '',
     precio: 0,
     unidad: ''
-  }
+  })
+
   const unidades: TUnidad[] = ["kg", "at", "l", "u"]
 
-  const [producto, setProducto] = useState<IProducto>(productoVacio)
+  const [producto, setProducto] = useState<IProducto>(p)
+  const {editarProducto} = useStorage()
 
   const handleEditar = (update: Partial<IProducto>) => {
     const updateado = { ...producto, ...update };
     setProducto(updateado);
-    onEdit(producto, update);
+    editarProducto(updateado, update);
   };
 
-  const {editarProducto, borrarProducto } = useStorage()
+  const { borrarProducto } = useStorage()
 
   return <>
-    <TextInput value={p.nombre} onChange={e => handleEditar({ nombre: e.target.value })} />
-    <NumberInput value={p.precio} onChange={n => handleEditar({ precio: n })} />
-    <SelectInput value={p.unidad} onChange={e => handleEditar({ unidad: e.target.value })}>
+    <TextInput value={producto.nombre} onChange={e => handleEditar({ nombre: e.target.value })} />
+    <NumberInput value={producto.precio} onChange={n => handleEditar({ precio: n })} />
+    <SelectInput value={producto.unidad} onChange={e => handleEditar({ unidad: e.target.value })}>
       {unidades.map(u => <option key={u} value={u}>{capitalize(u)}</option>)}
     </SelectInput>
-    <button onClick={() => borrarProducto(p)}>X</button>
+    <button onClick={() => borrarProducto(producto)}>X</button>
   </>
 }
 
 const Menu = () => {
   const { cargarJson, agregarProducto } = useStorage();
+  const new_id = uuidjs.UUID.generate()
 
   return <div className="flex w-64 justify-evenly">
     <button onClick={cargarJson}>Cargar json</button>
-    <button onClick={() => agregarProducto({ "nombre": "", "precio": 0, "unidad": "kg" })}>Agregar</button>
+    <button onClick={() => agregarProducto({ "_id": new_id, "nombre": "", "precio": 0, "unidad": "kg" })}>Agregar</button>
   </div>
 }

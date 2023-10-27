@@ -34,7 +34,7 @@ const unidadesAfines: Record<string, string[]> = {
 
 export default function useParser(){
 
-    const { productos, textoPedido, setPedido } = useContext(AppContext);
+    const { productos, textoPedido, setTextoPedido, setPedido } = useContext(AppContext);
 
     const fuse = useRef<Fuse<IProducto> | null>(null);
   
@@ -96,5 +96,9 @@ export default function useParser(){
   
       setPedido(p => ({ ...p, productos: productosPedidos, total: productosPedidos.filter(tienePrecio).reduce((acc, r) => acc + r.precio, 0) }))
     }, [setPedido, textoPedido])
+
+    return {
+      textoPedido, setTextoPedido
+    }
 
 }

@@ -1,6 +1,7 @@
 type TUnidad = 'kg' | 'at' | 'u' | 'l'
 
 interface IProducto{
+  _id: string,
   nombre: string,
   precio: number,
   unidad: string

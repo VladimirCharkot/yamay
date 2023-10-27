@@ -1,16 +1,22 @@
 import TextInput from './input/textInput'
 import useStorage from './context/storage'
+import useParser from './context/parsePedido'
+import { Fragment } from 'react'
 
 export default function ElQueTeLevantaPedidos() {
-
-  const { ingresarPedido } = useStorage()
 
   return <div className='flex flex-col items-center justify-between max-w-36'>
     <Nombre />
     <TextAreaPedido />
     <GrillaPedido />
-    <button className="border" onClick={ingresarPedido}>Ingresar</button>
+    <BotonIngresarPedido/>
   </div>
+}
+
+
+const BotonIngresarPedido = () => {
+  const { ingresarPedido } = useStorage()
+  return <button className="rounded-lg bg-amber-100 text-amber-800 p-2" onClick={ingresarPedido}>Ingresar</button>
 }
 
 
@@ -28,7 +34,7 @@ const Nombre = () => {
 
 const TextAreaPedido = () => {
 
-  const {textoPedido, setTextoPedido} = useStorage()
+  const { textoPedido, setTextoPedido } = useParser()
 
   const border = 'border border-dashed border-amber-100 focus:outline-none'
   const bg = 'bg-transparent hover:bg-amber-900 focus:bg-amber-800'
@@ -44,10 +50,10 @@ const GrillaPedido = () => {
 
   const { pedido } = useStorage()
 
-  const grid = 'grid grid-cols-[3fr_30px_3fr_1fr_10px_1fr_30px_1fr] gap-x-2'
+  const grid = 'grid grid-cols-[2fr_30px_2fr_1fr_10px_1fr_30px_1fr] gap-x-2'
 
   return <>
-    <ul className={`text-white m-4 ${grid}`}>{pedido.productos.map((prd, i) => <>
+    <ul className={`text-sm md:text-lg text-white m-4 ${grid}`}>{pedido.productos.map((prd, i) => <Fragment key={prd.nombre}>
       <div key={i} className='text-right'>{prd.textoOriginal}</div>
       <div>-&gt;</div>
       <div className='text-right'>{prd.nombre}</div>
@@ -59,7 +65,9 @@ const GrillaPedido = () => {
         <div>${prd.precio}</div>
       </>}
       {!prd.unidadPedida && <><div /><div /><div /><div /><div /></>}
-    </>)}
+    </Fragment>)}
+
+      {/* Línea de total: */}
       <>
         <div /><div /><div /><div /><div /><div /><div />
         <div className='border-t'>${pedido.total}</div>

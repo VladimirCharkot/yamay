@@ -8,7 +8,9 @@ interface AppContextInterface{
   textoPedido: string,
   setTextoPedido: Dispatch<SetStateAction<string>>,
   pedido: IPedido,
-  setPedido: Dispatch<SetStateAction<IPedido>>
+  setPedido: Dispatch<SetStateAction<IPedido>>,
+  levantado: boolean,
+  setLevantado: Dispatch<SetStateAction<boolean>>
 }
 
 export const pedidoVacio = {
@@ -22,6 +24,7 @@ export const pedidoVacio = {
 
 
 // Usar a través de storage
+console.log(`Creando context...`)
 export const AppContext = createContext<AppContextInterface>({
   pedidos: [],
   setPedidos: () => {},
@@ -30,5 +33,7 @@ export const AppContext = createContext<AppContextInterface>({
   textoPedido: '',
   setTextoPedido: () => {},
   pedido: pedidoVacio,
-  setPedido: () => {}
+  setPedido: () => {},
+  levantado: false,
+  setLevantado: () => {}
 })

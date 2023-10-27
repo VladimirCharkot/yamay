@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext, pedidoVacio } from "./appContext";
 import { findIndex, slice, sortBy } from "lodash";
 
@@ -8,14 +8,15 @@ import prodsJson from "@/data/productos.json"
 export default function useStorage() {
 
   const {
-    pedidos, setPedidos, 
+    pedidos, setPedidos,
     productos, setProductos,
     textoPedido, setTextoPedido,
-    pedido, setPedido
+    pedido, setPedido,
+    levantado, setLevantado
   } = useContext(AppContext)
 
   useEffect(() => {
-    if(process.env.DEBUG){
+    if (process.env.DEBUG) {
       console.log(`--------------`)
       console.log(`Pedidos`)
       console.log(pedidos)
@@ -29,37 +30,41 @@ export default function useStorage() {
   // Guarda los productos y pedidos en localStorage
   useEffect(() => {
     if (pedidos.length > 0) {
-      console.log(`Guardando pedidos en localstorage...`)
+      // console.log(`Guardando pedidos en localstorage...`)
       localStorage.setItem('pedidos', JSON.stringify(pedidos))
     }
   }, [pedidos])
 
   useEffect(() => {
     if (productos.length > 0) {
-      console.log(`Guardando productos en localstorage...`)
+      // console.log(`Guardando productos en localstorage...`)
       localStorage.setItem('productos', JSON.stringify(productos))
     }
   }, [productos])
 
   // Carga los productos y pedidos de localStorage
   useEffect(() => {
-    console.log(`Levantando productos y pedidos...`)
+    if (!levantado) {
+      console.log(`Levantando productos y pedidos...`)
 
-    const prodsLocal = localStorage.getItem('productos')
-    if (prodsLocal !== null) {
-      const ps = JSON.parse(prodsLocal)
-      setProductos(sortBy(ps, p => p.nombre))
-      console.log(ps)
-    }
-    
-    const pedsLocal = localStorage.getItem('pedidos')
-    if (pedsLocal !== null) {
-      const ps = JSON.parse(pedsLocal)
-      setPedidos(sortBy(ps, p => p.nombre))
-      console.log(ps)
+      const prodsLocal = localStorage.getItem('productos')
+      if (prodsLocal !== null) {
+        const ps = JSON.parse(prodsLocal)
+        setProductos(sortBy(ps, p => p.nombre))
+        console.log(ps)
+      }
+
+      const pedsLocal = localStorage.getItem('pedidos')
+      if (pedsLocal !== null) {
+        const ps = JSON.parse(pedsLocal)
+        setPedidos(sortBy(ps, p => p.nombre))
+        console.log(ps)
+      }
+
+      setLevantado(true)
     }
 
-  }, [setPedidos, setProductos])
+  }, [levantado])
 
 
   // Carga en productos los del json
@@ -74,11 +79,11 @@ export default function useStorage() {
   }
 
   const borrarProducto = (p: IProducto) => {
-    setProductos(ps => ps.filter(prod => prod.nombre != p.nombre && prod.unidad == p.unidad))
+    setProductos(ps => ps.filter(prod => prod._id != p._id))
   }
 
   const editarProducto = (p: IProducto, u: Partial<IProducto>) => {
-    const index = findIndex(productos, prod => prod.nombre == p.nombre)
+    const index = findIndex(productos, prod => prod._id == p._id)
     setProductos([...slice(productos, 0, index), { ...p, ...u }, ...slice(productos, index + 1)])
   }
 

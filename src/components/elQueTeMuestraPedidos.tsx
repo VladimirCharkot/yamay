@@ -24,10 +24,10 @@ function Pedido({ pedido }: PedidoProps) {
   if (typeof (pedido.fecha) == typeof (""))
     pedido.fecha = new Date(pedido.fecha)
 
-  const shadow = `shadow-lg shadow-white`
+  const shadow = `shadow-white`
   const box = `m-5 p-2 max-w-2xl`
 
-  return <div className={`border ${shadow} ${box}`}>
+  return <div className={`border ${shadow} ${box}`} style={{boxShadow: '0px 0px 8px'}}>
     <Header pedido={pedido}/>
     <ProductosPedidos pedido={pedido}/>
   </div>
