@@ -1,13 +1,17 @@
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
 import useStorage from "./context/storage"
+import TextInput from "./input/textInput"
 
 export default function ElQueTeMuestraLosPedidos() {
 
+  const [filtroNombre, setFiltroNombre] = useState('')
+  const filtrado = (p: IPedido) => p.cliente.toLowerCase().includes(filtroNombre.toLowerCase())
   const {pedidos} = useStorage()
 
   return <div>
+    <TextInput value={filtroNombre} onChange={e => setFiltroNombre(e.target.value)} tw="border-b"></TextInput>
     <ul>
-      {pedidos.map(p => <Fragment key={p.cliente + p.fecha}>
+      {pedidos.filter(filtrado).map(p => <Fragment key={p.cliente + p.fecha}>
         <Pedido pedido={p} />
       </Fragment>)}
     </ul>
@@ -45,9 +49,9 @@ const ProductosPedidos = ({pedido} : {pedido: IPedido}) => {
       {pedido.productos.map(pr =>
         <Fragment key={pr.nombre}>
           <div>{pr.nombre}</div>
-          <div>x {pr.cantidadPedida} {pr.unidadPedida}</div>
-          <div className="text-xs self-end">x ${pr.precioLista} / {pr.unidadLista}</div>
-          <div>${pr.precio}</div>
+          <div>x {pr.cantidad} {pr.unidad}</div>
+          <div className="text-xs self-end">x ${pr.precioLista} / {pr.unidad}</div>
+          <div>${pr.precioTotal}</div>
         </Fragment>
       )}
       <><div /><div /><div /><div className="border-t w-full">${pedido.total}</div></>

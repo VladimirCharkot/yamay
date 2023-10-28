@@ -25,7 +25,7 @@ const NumberInput = ({ value, onChange }: NumberInputProps) => {
     }
   }, [valorTexto])
 
-  return (<><input className={`bg-transparent border-b focus:outline-none text-center ${value == 0 ? 'text-[#82bcab]' : ''}`}
+  return (<><input className={`bg-transparent border-b border-dashed border-amber-100 focus:outline-none text-center ${value == 0 ? 'text-[#82bcab]' : ''}`}
       pattern="[0-9]*"
       value={value == 0 && !focus ? "-" : "$" + valorTexto}
       onFocus={() => setFocus(true)}

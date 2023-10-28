@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext, pedidoVacio } from "./appContext";
-import { findIndex, slice, sortBy } from "lodash";
+import { every, findIndex, flatMap, groupBy, map, pick, slice, sortBy, toPairs } from "lodash";
 
 // Json con defaults
 import prodsJson from "@/data/productos.json"
+import assert from "assert";
 
 export default function useStorage() {
 
@@ -69,7 +70,7 @@ export default function useStorage() {
 
   // Carga en productos los del json
   const cargarJson = () => {
-    setProductos(sortBy(prodsJson, p => p.nombre))
+    setProductos(sortBy(prodsJson as IProducto[], p => p.nombre))
   }
 
 
@@ -98,10 +99,40 @@ export default function useStorage() {
   }
 
 
+  // Sumariza y agrupa pedidos por verdura para pedido al abastecedor
+
+  const pedidoAbasto = () => {
+
+    const todosLosProductosPedidos = flatMap(pedidos, p => p.productos)
+    const agrupadosPorVerdura = toPairs(groupBy(todosLosProductosPedidos, e => e.nombre))
+
+    console.log(agrupadosPorVerdura)
+
+    const agregados = map(agrupadosPorVerdura,
+      ([verdura, pedidos]) => ({
+        verdura,
+        cantidad: pedidos.reduce((acc, c) => acc + c.cantidad, 0),
+        unidad: pedidos[0].unidad
+      })
+    )
+
+    return agregados
+  }
+
+
   return {
     pedidos, productos, setPedidos, setProductos,
     cargarJson, agregarProducto, borrarProducto, editarProducto,
-    textoPedido, setTextoPedido, pedido, setPedido, ingresarPedido
+    textoPedido, setTextoPedido, pedido, setPedido, ingresarPedido,
+    pedidoAbasto
   }
 
 }
+
+
+
+// // Que todos estén denominados en la misma medida, y que esta sea la listada:
+// const garantizarConsistencia = (ps: IProductoPedido[]) => ps.reduce(
+//   (acc, c) => acc && c.unidadPedida == ps[0].unidadPedida,
+//   true
+// ) && ps[0].unidadPedida == ps[0].unidadLista

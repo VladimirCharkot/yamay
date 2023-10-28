@@ -6,7 +6,7 @@ interface SelectInputProps extends PropsWithChildren{
 }
 
 export default function SelectInput({value, onChange, children} : SelectInputProps){
-  return <select className="bg-transparent p-2 border-b" value={value} onChange={onChange}>
+  return <select className="bg-transparent p-2 border-b border-dashed border-amber-100" value={value} onChange={onChange}>
         {children}
       </select>
 }

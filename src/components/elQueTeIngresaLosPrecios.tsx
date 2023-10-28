@@ -2,7 +2,7 @@
 // import { v4 as uuidv4 } from 'uuid';
 import { capitalize } from "lodash";
 import { Fragment, useState } from "react";
-import * as uuidjs  from 'uuidjs';
+import * as uuidjs from 'uuidjs';
 
 import TextInput from "@/components/input/textInput";
 import SelectInput from "@/components/input/selectInput";
@@ -24,33 +24,26 @@ export default function ElQueTeIngresaLosPrecios() {
 
 const GrillaProductos = () => {
 
-  const { productos, editarProducto } = useStorage()
+  const { productos } = useStorage()
 
   return <div className="grid grid-cols-[1fr_1fr_1fr_20px] gap-2">
     {productos.map(p => <Fragment key={p._id}>
-      {/* <p>{p.nombre}</p> */}
-      <LineaProducto p={p} onEdit={editarProducto}/>
+      <LineaProducto p={p} />
     </Fragment>)}
   </div>
 }
 
-const LineaProducto = ({p, onEdit}: {p: IProducto, onEdit: (p: IProducto, u: Partial<IProducto>) => void}) => {
-  const productoVacio = () => ({
-    _id: '',
-    nombre: '',
-    precio: 0,
-    unidad: ''
-  })
+const LineaProducto = ({ p }: { p: IProducto }) => {
 
   const unidades: TUnidad[] = ["kg", "at", "l", "u"]
 
-  const [producto, setProducto] = useState<IProducto>(p)
-  const {editarProducto} = useStorage()
+  const [producto, setProducto] = useState(p)
+  const { editarProducto } = useStorage()
 
   const handleEditar = (update: Partial<IProducto>) => {
     const updateado = { ...producto, ...update };
     setProducto(updateado);
-    editarProducto(updateado, update);
+    editarProducto(p, update);
   };
 
   const { borrarProducto } = useStorage()
@@ -58,7 +51,7 @@ const LineaProducto = ({p, onEdit}: {p: IProducto, onEdit: (p: IProducto, u: Par
   return <>
     <TextInput value={producto.nombre} onChange={e => handleEditar({ nombre: e.target.value })} />
     <NumberInput value={producto.precio} onChange={n => handleEditar({ precio: n })} />
-    <SelectInput value={producto.unidad} onChange={e => handleEditar({ unidad: e.target.value })}>
+    <SelectInput value={producto.unidad} onChange={e => handleEditar({ unidad: e.target.value as TUnidad })}>
       {unidades.map(u => <option key={u} value={u}>{capitalize(u)}</option>)}
     </SelectInput>
     <button onClick={() => borrarProducto(producto)}>X</button>

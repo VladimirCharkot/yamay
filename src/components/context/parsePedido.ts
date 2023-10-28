@@ -2,15 +2,14 @@ import { useContext, useEffect, useRef } from "react"
 import { AppContext } from "./appContext"
 import Fuse from "fuse.js"
 
-const floatRegex = /([0-9]*[.])?[0-9]+/
 const kilosRegex = /(([0-9]*[.])?[0-9]+) ?(kg?|kilos?)/
 const gramosRegex = /(([0-9]*[.])?[0-9]+) ?(grms|grs|gs|gr|g)/
-const atadosRegex = /(\d+?) ?atados?/
+const atadosRegex = /(\d+?) ?(ats?|atados?)/
 const docenasRegex = /(\d+?) ?doc(enas?)?/
 const litrosRegex = /(([0-9]*[.])?[0-9]+) ?(l|lt|lts|ltrs|litros?)/
-const unidadesRegex = /(\d+?) ?u?/
+const unidadesRegex = /(\d+?) ?(u|un|uni|unid)?/
 
-const parseMedida = (linea: string) => {
+const parseMedida = (linea: string): IMedida | undefined => {
   const matchKilos = linea.match(kilosRegex)
   const matchGramos = linea.match(gramosRegex)
   const matchAtado = linea.match(atadosRegex)
@@ -25,80 +24,88 @@ const parseMedida = (linea: string) => {
   if (matchUnidades) return { texto: matchUnidades[0], cantidad: parseInt(matchUnidades[0]), unidad: 'u' }
 }
 
-const unidadesAfines: Record<string, string[]> = {
+const unidadesAfines: Record<TUnidad, TUnidad[]> = {
   'kg': ['kg'],
   'at': ['at', 'u'],
   'l': ['l', 'u'],
-  'u': ['at', 'u', 'l']
+  'u': ['at', 'u', 'l'],
+  'doc': ['doc']
 }
 
-export default function useParser(){
 
-    const { productos, textoPedido, setTextoPedido, setPedido } = useContext(AppContext);
 
-    const fuse = useRef<Fuse<IProducto> | null>(null);
-  
-    // Cuando la lista de productos cambie, recreamos el buscador fuzzy
-    useEffect(() => {
-      const prods = Array.from(productos)
+export default function useParser() {
 
-      const options = {
-        includeScore: true,
-        keys: ['nombre'],
-        threshold: 0.6
-      }
+  const { productos, textoPedido, setTextoPedido, setPedido } = useContext(AppContext);
 
-      fuse.current = new Fuse(prods, options);
-    }, [productos]);
+  const fuse = useRef<Fuse<IProducto> | null>(null);
 
-    
-    // Cuando el texto cambie, procesamos el pedido
-    useEffect(() => {
+  // Cuando la lista de productos cambie, recreamos el buscador fuzzy
+  useEffect(() => {
+    const prods = Array.from(productos)
 
-      // Spliteamos por línea
-      const lineas = textoPedido.split('\n')
-
-      // Parseamos las medidas y las extraemos
-      const conMedidas = lineas.map(txt => ({ txt, medidaPedida: parseMedida(txt) }))
-      const medidasStripeadas = conMedidas.map(r => ({ ...r, txtSinMedida: r.medidaPedida ? r.txt.replace(r.medidaPedida.texto, "").trim() : r.txt }))
-
-      // Matcheamos contra la lista de productos
-      const matchsEncontrados = medidasStripeadas.map(r => ({ ...r, match: fuse.current ? fuse.current.search(r.txtSinMedida) : null }))
-      
-      // Agregamos 
-      const results = matchsEncontrados.map(r => ({
-        ...r,
-        productoMatcheado: r.match ? r.match[0]?.item.nombre : null,
-        // productoMatcheado: r.match.length > 0 ? r.match[0].item.nombre + ` (${r.match[0].score?.toFixed(2)})` : "No match",
-        matchMedidas: r.medidaPedida && r.match && r.match[0] && unidadesAfines[r.medidaPedida.unidad].includes(r.match[0].item.unidad),
-        precioCalculado: r.medidaPedida && r.match && r.match[0] && (unidadesAfines[r.medidaPedida.unidad].includes(r.match[0].item.unidad) ? r.medidaPedida.cantidad * r.match[0].item.precio : 0)
-      }))
-  
-      const productosPedidos: IProductoPedido[] = results.map(r => ({
-        ...r,
-        textoOriginal: r.txt,
-  
-        cantidadPedida: r.medidaPedida?.cantidad ?? 0,
-        unidadPedida: (r.medidaPedida?.unidad ?? 'u') as TUnidad,
-  
-        precioLista: r.match && r.match[0] ? r.match[0].item.precio : 0,
-        unidadLista: (r.medidaPedida?.unidad ?? 'u') as TUnidad,
-  
-        nombre: r.productoMatcheado ?? "No encontrado",
-      })).map(r => ({
-        ...r,
-        precio: r.precioLista ? r.cantidadPedida * r.precioLista : 0
-      }))
-  
-      console.log(productosPedidos)
-
-      const tienePrecio = (p: any) => p.precio !== undefined && p.precio !== null
-  
-      setPedido(p => ({ ...p, productos: productosPedidos, total: productosPedidos.filter(tienePrecio).reduce((acc, r) => acc + r.precio, 0) }))
-    }, [setPedido, textoPedido])
-
-    return {
-      textoPedido, setTextoPedido
+    const options = {
+      includeScore: true,
+      keys: ['nombre'],
+      threshold: 0.6
     }
+
+    fuse.current = new Fuse(prods, options);
+  }, [productos]);
+
+
+  const matchearTexto = (textoOriginal: string): IMatch => {
+    const medidaMatcheada = parseMedida(textoOriginal)
+    if (medidaMatcheada && fuse.current) {
+      const resultadoMatch = fuse.current.search(textoOriginal.replace(medidaMatcheada.texto, "").trim())
+      if (resultadoMatch.length > 0) {
+        const productoMatcheado = resultadoMatch[0].item
+        return { textoOriginal, productoMatcheado, medidaMatcheada }
+      }
+    }
+    return { textoOriginal }
+  }
+
+  const computarProductoPedido = (m: IMatch): IProductoPedido | IMatch => {
+
+    if(!m.productoMatcheado || !m.medidaMatcheada) return m
+
+    // Si la unidad pedida coincide con la unidad listada...
+    if(m.productoMatcheado.unidad == m.medidaMatcheada.unidad){
+      return {
+        textoOriginal: m.textoOriginal,
+        nombre: m.productoMatcheado.nombre,
+        cantidad: m.medidaMatcheada.cantidad,
+        unidad: m.productoMatcheado.unidad,
+        precioLista: m.productoMatcheado.precio,
+        precioTotal: m.medidaMatcheada.cantidad * m.productoMatcheado.precio
+      }
+    }
+
+    return m
+  }
+
+
+  // Cuando el texto cambie, procesamos el pedido
+  useEffect(() => {
+    console.log(`Parseando...`)
+    const isProductoPedido = (p: IProductoPedido | IMatch): p is IProductoPedido => (p as IProductoPedido).precioTotal !== undefined
+    const matches = textoPedido.split('\n').map(matchearTexto)
+    console.log(`Matches:`)
+    console.log(matches)
+    const productosPedidos: (IProductoPedido | IMatch)[] = matches.map(computarProductoPedido)
+    console.log(`Productos pedidos:`)
+    console.log(productosPedidos)
+    const productosConPrecio = productosPedidos.filter(isProductoPedido)
+    console.log(productosConPrecio)
+    setPedido(p => ({ ...p, 
+      productos: productosConPrecio, 
+      total: productosConPrecio.reduce((acc, r) => acc + r.precioTotal, 0) 
+    }))
+  }, [setPedido, textoPedido])
+
+  return {
+    textoPedido, setTextoPedido
+  }
 
 }
