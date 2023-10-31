@@ -8,6 +8,7 @@ import TextInput from "@/components/input/textInput";
 import SelectInput from "@/components/input/selectInput";
 import NumberInput from "@/components/input/numberInput";
 import useStorage from "./context/storage";
+import { Boton } from "./input/boton";
 
 export default function ElQueTeIngresaLosPrecios() {
 
@@ -34,7 +35,7 @@ const GrillaProductos = () => {
       <div>Unidad</div>
       <div>Ganancia</div>
       <div>Clase</div>
-      <div>Borrar</div>
+      <div></div>
     </>
     {productos.map(p => <Fragment key={p._id}>
       <LineaProducto p={p} />
@@ -69,7 +70,7 @@ const LineaProducto = ({ p }: { p: IProducto }) => {
     <SelectInput value={producto.clase} onChange={e => handleEditar({clase: e.target.value as TClase})}>
       {clases.map(c => <option key={c} value={c}>{capitalize(c)}</option>)}
     </SelectInput>
-    <button onClick={() => borrarProducto(producto)}>X</button>
+    <Boton txt="X" onClick={() => borrarProducto(producto)} />
   </>
 }
 
@@ -79,8 +80,8 @@ const Menu = () => {
   const vacio = { "_id": new_id, nombre: "", precioVenta: 0, precioCompra: 0, unidad: "kg", clase: "verdura" } as IProducto
 
   return <div className="flex w-64 justify-evenly">
-    <button className="px-2 whitespace-nowrap" onClick={() => setProductos(ps => sortBy(ps, p => p.nombre))}>Ordenar</button>
+    <Boton txt={"Ordenar"} tw="px-2 whitespace-nowrap" onClick={() => setProductos(ps => sortBy(ps, p => p.nombre))} />
     {/* <button className="px-2 whitespace-nowrap" onClick={cargarJson}>Cargar json</button> */}
-    <button className="px-2 whitespace-nowrap" onClick={() => agregarProducto(vacio)}>Agregar</button>
+    <Boton txt="Agregar" tw="px-2 whitespace-nowrap" onClick={() => agregarProducto(vacio)}/>
   </div>
 }
