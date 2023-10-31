@@ -31,14 +31,12 @@ export default function useStorage() {
   // Guarda los productos y pedidos en localStorage
   useEffect(() => {
     if (pedidos.length > 0) {
-      // console.log(`Guardando pedidos en localstorage...`)
       localStorage.setItem('pedidos', JSON.stringify(pedidos))
     }
   }, [pedidos])
 
   useEffect(() => {
     if (productos.length > 0) {
-      // console.log(`Guardando productos en localstorage...`)
       localStorage.setItem('productos', JSON.stringify(productos))
     }
   }, [productos])
@@ -105,8 +103,6 @@ export default function useStorage() {
 
     const todosLosProductosPedidos = flatMap(pedidos, p => p.productos)
     const agrupadosPorVerdura = toPairs(groupBy(todosLosProductosPedidos, e => e.nombre))
-
-    console.log(agrupadosPorVerdura)
 
     const agregados = map(agrupadosPorVerdura,
       ([verdura, pedidos]) => ({

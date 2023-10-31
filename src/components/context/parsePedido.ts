@@ -77,8 +77,8 @@ export default function useParser() {
         nombre: m.productoMatcheado.nombre,
         cantidad: m.medidaMatcheada.cantidad,
         unidad: m.productoMatcheado.unidad,
-        precioLista: m.productoMatcheado.precio,
-        precioTotal: m.medidaMatcheada.cantidad * m.productoMatcheado.precio
+        precioLista: m.productoMatcheado.precioVenta,
+        precioTotal: m.medidaMatcheada.cantidad * m.productoMatcheado.precioVenta
       }
     }
 
@@ -88,16 +88,10 @@ export default function useParser() {
 
   // Cuando el texto cambie, procesamos el pedido
   useEffect(() => {
-    console.log(`Parseando...`)
     const isProductoPedido = (p: IProductoPedido | IMatch): p is IProductoPedido => (p as IProductoPedido).precioTotal !== undefined
     const matches = textoPedido.split('\n').map(matchearTexto)
-    console.log(`Matches:`)
-    console.log(matches)
     const productosPedidos: (IProductoPedido | IMatch)[] = matches.map(computarProductoPedido)
-    console.log(`Productos pedidos:`)
-    console.log(productosPedidos)
     const productosConPrecio = productosPedidos.filter(isProductoPedido)
-    console.log(productosConPrecio)
     setPedido(p => ({ ...p, 
       productos: productosConPrecio, 
       total: productosConPrecio.reduce((acc, r) => acc + r.precioTotal, 0) 

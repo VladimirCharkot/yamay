@@ -1,10 +1,13 @@
 type TUnidad = 'kg' | 'at' | 'u' | 'l' | 'doc'
+type TClase = 'fruta' | 'almacen' | 'verdura' | 'hongo'
 
 interface IProducto{
   _id: string,
   nombre: string,
-  precio: number,
-  unidad: TUnidad
+  precioCompra: number,
+  precioVenta: number,
+  unidad: TUnidad,
+  clase: TClase
 }
 
 interface IProductoPedido{
@@ -34,7 +37,7 @@ interface IMatch {
   medidaMatcheada?: IMedida
 }
 
-type TEstado = "ingresando" | "recibido" | "visto" | "preparado" | "entregado"
+type TEstado = "ingresando" | "recibido" | "visto" | "en preparacion" | "preparado" | "entregado"
 
 interface IPedido{
   cliente: string,
